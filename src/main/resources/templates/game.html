@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<head>
+    <meta charset="UTF-8">
+    <title>Tic Tac Toe | William Stanton</title>
+    <meta name="description" content="Simple Tic Tac Toe game developed in Java">
+    <link rel="preload" th:href="@{main.css}" as="style">
+    <link rel="preload" th:href="@{game.css}" as="style">
+    <link rel="stylesheet" th:href="@{main.css}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" th:href="@{game.css}" media="print" onload="this.media='all'">
+
+</head>
+<body>
+<!-- Game Info -->
+<div class="modalParent">
+    <div class="modalHead">
+        <h1>Tic Tac Toe Game</h1>
+    </div>
+    <div class="modalInfo">
+        <!-- Active Game -->
+        <div class="gameStatus">
+            <div class="activeGame" th:if="${game.getStatus().name() == 'INCOMPLETE'}">
+                <h1 id="nextTurn">[[${game.getNextPlayer}]], it's your turn!</h1>
+            </div>
+
+            <!-- Inactive Game -->
+            <div class="gameMessage" th:if="${game.getStatus().name() != 'INCOMPLETE'}">
+                <h1>Game over...</h1>
+
+                <!-- Display Status -->
+                <p th:text="${game.getStatus.name() == 'WON' ? game.getWinner.getName + ' has won!' : 'Tie!'}"></p>
+
+                <!-- New Game Button  -->
+                <form th:action="@{/restart}" th:method="post">
+                    <button class="btnCenter" type="submit">Play Again!</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Game Board -->
+        <div class="boardParent" id="board">
+            <!-- Row 1 -->
+            <div class="boardRow row1">
+                <!-- Column 1-3 -->
+                <form th:each="b : ${game.getBoard.getBoardSpots[0]}"  th:method="post" th:class="'col' + ${b.id}">
+                    <button th:type="${b.player.symbol == null && game.getStatus.name() == 'INCOMPLETE' ? 'button' : 'button'}" class="boardSpot" th:id="${b.id}" th:text="${b.player.name != null ? b.player.symbol : ''}"></button>
+                </form>
+            </div>
+            <!-- Row 2 -->
+            <div class="boardRow row2">
+                <!-- Column 4-6 -->
+                <form th:each="b : ${game.getBoard.getBoardSpots[1]}"  th:method="post" th:class="'col' + ${b.id}">
+                    <button th:type="${b.player.symbol == null && game.getStatus.name() == 'INCOMPLETE' ? 'button' : 'button'}" class="boardSpot" th:id="${b.id}" th:text="${b.player.name != null ? b.player.symbol : ''}"></button>
+                </form>
+            </div>
+            <!-- Row 3 -->
+            <div class="boardRow row3">
+                <!-- Column 7-9 -->
+                <form th:each="b : ${game.getBoard.getBoardSpots[2]}"  th:method="post" th:class="'col' + ${b.id}">
+                    <button th:type="${b.player.symbol == null && game.getStatus.name() == 'INCOMPLETE' ? 'button' : 'button'}" class="boardSpot" th:id="${b.id}" th:text="${b.player.name != null ? b.player.symbol : ''}"></button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="modalOptions">
+        <!-- New Game Button  -->
+        <form th:action="@{/restart}" th:method="post">
+            <button class="btn" type="submit">🔄 Restart</button>
+        </form>
+        <button class="btn" onclick="location.href='/'">📈 Leaderboard</button>
+        <form th:action="@{/settings}" th:method="post">
+            <button class="btn" onclick="location.href='/settings'" th:text="${game.class.name != 'tictactoelib.game.ComputerGame' ? '⚙️ Play AI' : '⚙️ Play local'}"></button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const buttons = document.getElementById("board").getElementsByTagName('button');
+
+    // update spots
+    for (let button of buttons) {
+        button.addEventListener('click', e => {
+            let id = e.target.id;
+            fetch("http://localhost:8080/next?id=" + id, {
+                method: "POST"
+            }).then((response) => {
+                if (response.ok)
+                    return response.json();
+                else
+                    throw new Error("Unknown Error");
+            }).then(data => {
+                // refresh page if status changed
+                if (data.statusChange)
+                    location.reload();
+                // else, update board symbol and next player
+                document.getElementById(id).innerText = data.player.symbol; // update board symbol
+                document.getElementById("nextTurn").innerText = data.nextPlayer.name + ", it's your turn!"; // show next player
+            });
+        });
+    }
+</script>
+</body>
+</html>

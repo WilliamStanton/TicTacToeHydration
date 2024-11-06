@@ -1,0 +1,95 @@
+/* Main CSS */
+html, body{
+    padding: 0;
+    margin: 0;
+}
+
+html{
+    height: 100%;
+}
+
+body {
+    font-family: system-ui;
+    background-color: lightgray;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    min-height: 100%;
+}
+
+p,h1,h2,h3,h4,h5 {
+    margin: 0;
+}
+
+a, a:active, a:visited {
+    color: black;
+}
+
+button {
+    font-family: system-ui;
+    color: black;
+    cursor: pointer;
+    border: 1px solid transparent;
+    padding: 16px;
+    background-color: transparent;
+}
+
+select {
+    border-radius: 6px;
+    border: transparent;
+}
+
+.modalParent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 360px;
+}
+
+.modalParent .modalHead {
+    background-color: #212121;
+    color: white;
+    text-align: center;
+    border: 2px solid #212121;
+    padding: 24px 0;
+    width: 100%;
+    border-radius: 12px 12px 0 0;
+}
+
+/* Game Header */
+.modalParent .modalInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 2px solid #212121;
+    width: 100%;
+    padding: 24px 0;
+    border-radius: 0 0 12px 12px;
+    background-color: #dbdbdb;
+}
+
+/* Game Configuration Buttons */
+.modalParent .modalOptions {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.btn {
+    margin: 6px 0;
+    display: block;
+    border-radius: 24px;
+    font-size: 14px;
+    color: white;
+    background-color: #212121;
+}
+
+.btnCenter {
+    margin: 6px auto;
+    display: block;
+    border-radius: 24px;
+    font-size: 14px;
+    color: white;
+    background-color: #212121;
+}
