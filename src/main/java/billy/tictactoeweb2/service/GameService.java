@@ -19,9 +19,9 @@ public class GameService {
 
     /**
      * Restarts the game
+     * @param toggle switch modes
      */
-    public void restartGame(boolean toggle) {
+    public void resetGame(boolean toggle) {
         game = toggle ? game instanceof PlayerGame ? new ComputerGame() : new PlayerGame() : game instanceof PlayerGame ? new PlayerGame() : new ComputerGame();
     }
-
 }

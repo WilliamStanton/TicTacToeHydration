@@ -15,51 +15,26 @@
 <!-- Game Info -->
 <div class="modalParent">
     <div class="modalHead">
-        <h1>Tic Tac Toe Game</h1>
+        <h1 id="title">Tic Tac Toe</h1>
     </div>
     <div class="modalInfo">
-        <!-- Active Game -->
-        <div class="gameStatus">
-            <div class="activeGame" th:if="${game.getStatus().name() == 'INCOMPLETE'}">
-                <h1 id="nextTurn">[[${game.getNextPlayer}]], it's your turn!</h1>
-            </div>
-
-            <!-- Inactive Game -->
-            <div class="gameMessage" th:if="${game.getStatus().name() != 'INCOMPLETE'}">
-                <h1>Game over...</h1>
-
-                <!-- Display Status -->
-                <p th:text="${game.getStatus.name() == 'WON' ? game.getWinner.getName + ' has won!' : 'Tie!'}"></p>
-
-                <!-- New Game Button  -->
-                <form th:action="@{/restart}" th:method="post">
-                    <button class="btnCenter" type="submit">Play Again!</button>
-                </form>
-            </div>
-        </div>
 
         <!-- Game Board -->
         <div class="boardParent" id="board">
             <!-- Row 1 -->
             <div class="boardRow row1">
                 <!-- Column 1-3 -->
-                <form th:each="b : ${game.getBoard.getBoardSpots[0]}"  th:method="post" th:class="'col' + ${b.id}">
-                    <button th:type="${b.player.symbol == null && game.getStatus.name() == 'INCOMPLETE' ? 'button' : 'button'}" class="boardSpot" th:id="${b.id}" th:text="${b.player.name != null ? b.player.symbol : ''}"></button>
-                </form>
+                <button th:each="b : ${game.getBoard.getBoardSpots[0]}"  th:classappend="'col' + ${b.id}" th:type="${b.player.symbol == null && game.getStatus.name() == 'INCOMPLETE' ? 'button' : 'button'}" class="boardSpot" th:id="${b.id}" th:text="${b.player.name != null ? b.player.symbol : ''}"></button>
             </div>
             <!-- Row 2 -->
             <div class="boardRow row2">
                 <!-- Column 4-6 -->
-                <form th:each="b : ${game.getBoard.getBoardSpots[1]}"  th:method="post" th:class="'col' + ${b.id}">
-                    <button th:type="${b.player.symbol == null && game.getStatus.name() == 'INCOMPLETE' ? 'button' : 'button'}" class="boardSpot" th:id="${b.id}" th:text="${b.player.name != null ? b.player.symbol : ''}"></button>
-                </form>
+                <button th:each="b : ${game.getBoard.getBoardSpots[1]}"  th:classappend="'col' + ${b.id}" th:type="${b.player.symbol == null && game.getStatus.name() == 'INCOMPLETE' ? 'button' : 'button'}" class="boardSpot" th:id="${b.id}" th:text="${b.player.name != null ? b.player.symbol : ''}"></button>
             </div>
             <!-- Row 3 -->
             <div class="boardRow row3">
                 <!-- Column 7-9 -->
-                <form th:each="b : ${game.getBoard.getBoardSpots[2]}"  th:method="post" th:class="'col' + ${b.id}">
-                    <button th:type="${b.player.symbol == null && game.getStatus.name() == 'INCOMPLETE' ? 'button' : 'button'}" class="boardSpot" th:id="${b.id}" th:text="${b.player.name != null ? b.player.symbol : ''}"></button>
-                </form>
+                <button th:each="b : ${game.getBoard.getBoardSpots[2]}"  th:classappend="'col' + ${b.id}" th:type="${b.player.symbol == null && game.getStatus.name() == 'INCOMPLETE' ? 'button' : 'button'}" class="boardSpot" th:id="${b.id}" th:text="${b.player.name != null ? b.player.symbol : ''}"></button>
             </div>
         </div>
     </div>
@@ -77,26 +52,88 @@
 
 <script>
     const buttons = document.getElementById("board").getElementsByTagName('button');
+    const title = document.getElementById('title');
+    let lastMove = '';
+
+    // init title after 1s
+    setTimeout(() => {
+        updateGameStatus();
+    }, 1000);
+
+    function updateGameStatus() {
+        fetch("http://localhost:8080/next")
+            .then((response) => {
+                if (response.ok)
+                    return response.json();
+                // else, game over
+                else {
+                    title.innerText = "Game over!";
+                    fetch("http://localhost:8080/winner")
+                        .then((response) => {
+                            // winner
+                            if (response.ok)
+                                return response.json();
+                            // tie
+                            else {
+                                title.innerText = "Game tied!";
+                            }
+                        })
+                        .then(data => {
+                            title.innerText = data.name + " won!";
+                        })
+                }
+            })
+            .then(data => {
+                title.innerText = data.name + " is up!";
+            });
+    }
 
     // update spots
     for (let button of buttons) {
         button.addEventListener('click', e => {
-            let id = e.target.id;
-            fetch("http://localhost:8080/next?id=" + id, {
-                method: "POST"
-            }).then((response) => {
-                if (response.ok)
-                    return response.json();
-                else
-                    throw new Error("Unknown Error");
-            }).then(data => {
-                // refresh page if status changed
-                if (data.statusChange)
-                    location.reload();
-                // else, update board symbol and next player
-                document.getElementById(id).innerText = data.player.symbol; // update board symbol
-                document.getElementById("nextTurn").innerText = data.nextPlayer.name + ", it's your turn!"; // show next player
-            });
+            if (e.target.innerText === '') {
+                let id = e.target.id;
+                fetch("http://localhost:8080/next?id=" + id, {
+                    method: "POST"
+                }).then((response) => {
+                    if (response.ok)
+                        return response.json();
+                    else
+                        throw new Error("Unknown Error");
+                }).then(data => {
+                    // update entire board and next player
+                    let boardSpots = data.board.boardSpots;
+                    for (let i = 0; i < boardSpots.length; i++) {
+                        for (let j = 0; j < boardSpots[i].length; j++) {
+                            let boardSpot = boardSpots[i][j];
+                            document.getElementById(boardSpot.id).innerText = boardSpot.player.symbol;
+                        }
+                    }
+
+                    // update status
+                    switch(data.gameStatus) {
+                        case 'INCOMPLETE':
+                            title.innerText = data.nextPlayer.name + " is up!"; // update next player
+                            lastMove = data.nextPlayer.name;
+                            break;
+                        case 'WON':
+                            // display won
+                            title.innerText = lastMove + ' won!'
+                            break;
+                        case 'TIED':
+                            // display tie
+                            title.innerText = 'Game tied!'
+                            break;
+                    }
+                });
+            } else {
+                // modify title for 5s to display error
+                let text = title.innerText;
+                title.innerText = 'Incorrect move..';
+                setTimeout(() => {
+                    title.innerText = text;
+                }, 5000);
+            }
         });
     }
 </script>
