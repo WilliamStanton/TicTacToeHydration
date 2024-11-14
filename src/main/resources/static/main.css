@@ -35,6 +35,11 @@ button {
     background-color: transparent;
 }
 
+button:disabled,
+button[disabled]{
+    cursor: not-allowed;
+}
+
 select {
     border-radius: 6px;
     border: transparent;
@@ -51,7 +56,6 @@ select {
     background-color: #212121;
     color: white;
     text-align: center;
-    border: 2px solid #212121;
     padding: 24px 0;
     width: 100%;
     border-radius: 12px 12px 0 0;
@@ -62,9 +66,7 @@ select {
     display: flex;
     flex-direction: column;
     align-items: center;
-    border: 2px solid #212121;
     width: 100%;
-    padding: 24px 0;
     border-radius: 0 0 12px 12px;
     background-color: #dbdbdb;
 }
@@ -78,15 +80,6 @@ select {
 
 .btn {
     margin: 6px 0;
-    display: block;
-    border-radius: 24px;
-    font-size: 14px;
-    color: white;
-    background-color: #212121;
-}
-
-.btnCenter {
-    margin: 6px auto;
     display: block;
     border-radius: 24px;
     font-size: 14px;

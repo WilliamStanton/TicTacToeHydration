@@ -6,10 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import tictactoelib.Player;
 import tictactoelib.board.Board;
 import tictactoelib.game.ComputerGame;
@@ -33,8 +30,10 @@ public class MainController {
     @GetMapping("/next")
     @ResponseBody
     public ResponseEntity<?> nextPlayer() throws GameException {
-        if (gameService.getGame().getStatus() == GameStatus.INCOMPLETE)
+        if (gameService.getGame().getStatus() == GameStatus.INCOMPLETE) {
+            System.out.println(gameService.getGame().getNextPlayer());
             return ResponseEntity.ok(gameService.getGame().getNextPlayer());
+        }
         else
             return ResponseEntity.badRequest().body("Game concluded");
     }
@@ -55,10 +54,10 @@ public class MainController {
      * Restart game/switch mode
      * @return new game
      */
-    @PostMapping(path = {"/restart", "settings"})
-    public String restartGame(HttpServletRequest req) {
+    @PatchMapping(path = {"/restart", "settings"})
+    public ResponseEntity<?> restartGame(HttpServletRequest req) {
         gameService.resetGame(req.getRequestURI().contains("settings"));
-        return "redirect:/";
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/board")
@@ -69,9 +68,9 @@ public class MainController {
 
     @GetMapping("/winner")
     @ResponseBody
-    public ResponseEntity<?> getWinner() throws GameException {
+    public ResponseEntity<?> getWinner() {
         if (gameService.getGame().getStatus() == GameStatus.WON)
-            return ResponseEntity.ok(gameService.getGame().getWinner());
+            return ResponseEntity.ok(gameService.getGame().getBoard().getWinningSpots());
         else
             return ResponseEntity.badRequest().body("No winner");
     }

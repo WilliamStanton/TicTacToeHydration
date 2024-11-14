@@ -40,25 +40,67 @@
     </div>
     <div class="modalOptions">
         <!-- New Game Button  -->
-        <form th:action="@{/restart}" th:method="post">
-            <button class="btn" type="submit">🔄 Restart</button>
-        </form>
-        <button class="btn" onclick="location.href='/'">📈 Leaderboard</button>
-        <form th:action="@{/settings}" th:method="post">
-            <button class="btn" onclick="location.href='/settings'" th:text="${game.class.name != 'tictactoelib.game.ComputerGame' ? '⚙️ Play AI' : '⚙️ Play local'}"></button>
-        </form>
+        <button class="btn" id="restart" type="submit">🔄 Restart</button>
+        <button class="btn" id="settings" th:text="${game.class.name != 'tictactoelib.game.ComputerGame' ? '⚙️ Play AI' : '⚙️ Play local'}"></button>
     </div>
 </div>
 
 <script>
     const buttons = document.getElementById("board").getElementsByTagName('button');
     const title = document.getElementById('title');
+    const restartBtn = document.getElementById('restart');
+    const settingsBtn = document.getElementById('settings');
+    let gameStatus = 'INCOMPLETE';
     let lastMove = '';
 
     // init title after 1s
     setTimeout(() => {
         updateGameStatus();
     }, 1000);
+
+    // settings btn
+    settingsBtn.addEventListener('click', () => {
+        restart(true)
+    });
+
+    // restart btn
+    restartBtn.addEventListener('click', () => {
+        restart(false)
+    });
+
+    // restart game
+    function restart(toggleMode) {
+        fetch(toggleMode ? 'http://localhost:8080/settings' : 'http://localhost:8080/restart', {
+            method: "PATCH"
+        })
+            .then(() => {
+                // clear board spots
+                for (let button of buttons) {
+                    button.innerText = '';
+                    button.disabled = false;
+                    button.classList.remove('winningSpot')
+                }
+
+                // get & set next player
+                fetch("http://localhost:8080/next")
+                    .then((response) => {
+                        if (response.ok)
+                            return response.json();
+                    })
+                    .then((data) => {
+                        // set title
+                        title.innerText = data.name + " is up!";
+
+                        // reset gameStatus && next move
+                        gameStatus = 'INCOMPLETE';
+                        lastMove = '';
+                    })
+            })
+
+        // update game mode name
+        if (toggleMode)
+            settingsBtn.innerText = settingsBtn.innerText === '⚙️ Play AI' ? '⚙️ Play local' : '⚙️ Play AI';
+    }
 
     function updateGameStatus() {
         fetch("http://localhost:8080/next")
@@ -79,7 +121,12 @@
                             }
                         })
                         .then(data => {
-                            title.innerText = data.name + " won!";
+                            // update all winning spots
+                            for (let i = 0; i < data.length; i++) {
+                                document.getElementById(data[i].id).classList.add('winningSpot');
+                            }
+                            // update title
+                            title.innerText = data[0].player.name + " won!";
                         })
                 }
             })
@@ -91,7 +138,7 @@
     // update spots
     for (let button of buttons) {
         button.addEventListener('click', e => {
-            if (e.target.innerText === '') {
+            if (e.target.innerText === '' && gameStatus === 'INCOMPLETE') {
                 let id = e.target.id;
                 fetch("http://localhost:8080/next?id=" + id, {
                     method: "POST"
@@ -101,6 +148,9 @@
                     else
                         throw new Error("Unknown Error");
                 }).then(data => {
+                    // disable specific spot
+                    document.getElementById(e.target.id).disabled = true;
+
                     // update entire board and next player
                     let boardSpots = data.board.boardSpots;
                     for (let i = 0; i < boardSpots.length; i++) {
@@ -118,23 +168,51 @@
                             break;
                         case 'WON':
                             // display won
-                            title.innerText = lastMove + ' won!'
+                            title.innerText = lastMove + ' won!';
+                            gameStatus = 'WON';
+
+                            // get winning spots
+                            fetch("http://localhost:8080/winner")
+                                .then((response) => {
+                                    if (response.ok)
+                                        return response.json();
+                                    else
+                                        throw new Error("Unknown Error");
+                                })
+                                .then(data => {
+                                    // update all winning spots
+                                    for (let i = 0; i < data.length; i++) {
+                                        document.getElementById(data[i].id).classList.add('winningSpot');
+                                    }
+                                    // update title
+                                    title.innerText = data[0].player.name + " won!";
+                                });
+                            disableAllSpots();
                             break;
                         case 'TIED':
                             // display tie
                             title.innerText = 'Game tied!'
+                            gameStatus = 'TIED';
+                            disableAllSpots();
                             break;
                     }
                 });
             } else {
                 // modify title for 5s to display error
                 let text = title.innerText;
-                title.innerText = 'Incorrect move..';
+                title.innerText = (gameStatus === 'INCOMPLETE') ? 'Incorrect move..' : 'Game over..';
                 setTimeout(() => {
                     title.innerText = text;
                 }, 5000);
             }
         });
+    }
+
+    // disables all spots
+    function disableAllSpots() {
+        for (let button of buttons) {
+            button.disabled = true;
+        }
     }
 </script>
 </body>

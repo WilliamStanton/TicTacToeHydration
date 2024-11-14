@@ -7,17 +7,6 @@
 .green {background-color: lightgreen}
 .brown {background-color: sandybrown}
 
-/* Game Status */
-.gameStatus {
-    text-align: center;
-    width: 306px;
-}
-
-/* Active Game */
-.gameStatus .activeGame h1 {
-    font-size: 26px;
-}
-
 /* Inactive Game */
 .gameMessage {
     background-color: #bebcbc;
@@ -32,7 +21,6 @@
 
 /* Game Board */
 .boardParent {
-    margin: 12px 0 0;
 }
 
 /* Game Board Row */
@@ -53,11 +41,8 @@
     padding: 16px;
     width: 100px;
     height: 100px;
-    font-size: 32px;
-}
-
-.boardParent .boardRow .boardSpot .disable {
-    cursor: not-allowed;
+    font-weight: 600;
+    font-size: 50px;
 }
 
 /* Board Row Designs */
