@@ -21,12 +21,19 @@ public class MainController {
         this.gameService = gameService;
     }
 
+    /**
+     * Game Home
+     */
     @GetMapping("")
     public String game(Model model){
         model.addAttribute("game", gameService.getGame());
         return "game";
     }
 
+    /**
+     * Gets next player
+     * @return returns next player, otherwise 400 - game concluded
+     */
     @GetMapping("/next")
     @ResponseBody
     public ResponseEntity<?> nextPlayer() throws GameException {
@@ -38,6 +45,12 @@ public class MainController {
             return ResponseEntity.badRequest().body("Game concluded");
     }
 
+    /**
+     * Makes next move
+     * @param id spot id
+     * @return move response
+     * @throws GameException move not completed
+     */
     @PostMapping("/next")
     public ResponseEntity<?> next(@RequestParam int id) throws GameException {
         var game = gameService.getGame();
@@ -60,12 +73,10 @@ public class MainController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/board")
-    @ResponseBody
-    public Board getBoard() {
-        return gameService.getGame().getBoard();
-    }
-
+    /**
+     * Gets game winner
+     * @return game winner
+     */
     @GetMapping("/winner")
     @ResponseBody
     public ResponseEntity<?> getWinner() {
